@@ -1,95 +1,101 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import useKnowledge from "@/lib/hooks/useKnowledge";
+import {useEffect, useState} from "react";
 
 export default function Home() {
+
+    const {documents,getDocumentsList, deleteDocument, uploadDocument} = useKnowledge()
+    const [file, setFile] = useState<File | null>(null);
+    const [docId, setDocId] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        getDocumentsList();
+    }, []);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setFile(e.target.files[0]);
+        }
+    };
+
+    const handleDocIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDocId(e.target.value);
+    };
+
+    const handleUpload = async () => {
+        setIsLoading(true)
+        if (file && docId) {
+            await uploadDocument(file, docId);
+            getDocumentsList(); // Aggiorna la lista dei documenti
+            setFile(null);
+            setDocId('');
+        }
+        setIsLoading(false)
+    };
+
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+      <main className={"flex-col flex p-6 max-w-screen-md mx-auto"}>
+          <div className={''}>
+              <h1 className="text-4xl font-bold">
+                  Vision helper
+              </h1>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+              <Card className={'my-10'}>
+                  <CardHeader>
+                      <CardTitle>File in db</CardTitle>
+                      <CardDescription>Actual knowledge</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <Table>
+                          <TableHeader>
+                                  <TableRow>
+                                              <TableHead >
+                                                  File name
+                                              </TableHead>
+                                      <TableHead >
+                                          Action
+                                      </TableHead>
+                                  </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {documents.map((data, index) => (
+                                      <TableRow key={index}>
+                                              <TableCell >
+                                                  {data}
+                                              </TableCell>
+                                          <TableCell>
+                                              <Button onClick={() => deleteDocument(data)}>Delete</Button>
+                                          </TableCell>
+                                      </TableRow>
+                                  ))}
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+                          </TableBody>
+                      </Table>
+                  </CardContent>
+              </Card>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
+              <Card className={'my-10'}>
+                  <CardHeader>
+                      <CardTitle>Upload file</CardTitle>
+                      <CardDescription>Add file to knowledge</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <Input type={'file'} onChange={handleFileChange}/>
+                      <Input className={'mt-3'} type={'text'} placeholder={"File id"} value={docId} onChange={handleDocIdChange}/>
+                  </CardContent>
+                  <CardFooter>
+                      <Button className={'mt-3 mb-4'} onClick={handleUpload} disabled={isLoading}>Upload</Button>
+                  </CardFooter>
+              </Card>
+          </div>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      </main>
   );
 }
